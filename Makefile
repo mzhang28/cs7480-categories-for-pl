@@ -1,2 +1,2 @@
 all:
-	latexmk main
+	latexmk -pdf main
