@@ -1,0 +1,52 @@
+\chapter{Explainer: algebra and coalgebra}
+
+\section{Algebra}
+
+% Before we look at coalgebras, let us consider algebras, which are slightly more intuitive.
+In algebra, there are many interesting structures to study, such as groups, rings, vector spaces, etc.
+If we look at the definitions for some common algebraic structures:
+
+\begin{itemize}
+    \item A group is a tuple $(G, \cdot, (-)^{-1})$ satisfying some axioms.
+    \item A ring is a tuple $(R, +, \cdot)$ satisfying some axioms.
+    \item A boolean algebra is a tuple $(B, \land, \lor, \neg)$ satisfying some axioms.
+\end{itemize}
+
+They all look similar -- a carrier, usually a set, followed by some operations on that carrier, satisfying some axioms.
+It may be useful to look for an abstraction over all of these.
+
+In order to make it easier to think about abstractions for a universal algebra, we'll start by focusing our work in the category of sets $\Set$.
+So our carrier will be some object in $\Set$.
+Then, consider an endofunctor $F : \Set \rightarrow \Set$.
+This will have two parts: an action on objects, which is simply a set function, and an action on morphisms.
+If we take $X$ to be the input carrier set, then $F(X)$ is essentially the representation of \emph{inputs} to operations you can take with $X$.
+Then, we have a morphism $\alpha : F(X) \rightarrow X$, known as the \emph{structure} map, which defines how the operations take place.
+
+For example:
+\begin{itemize}
+    \item the identity element of a group is not dependent on anything, so we say $F(X) = 1$, and so the morphism $\alpha : 1 \rightarrow X$ simply selects the identity element with no further input.
+    \item the inverse operation of a group is a set-function $X \rightarrow X$. This translates to our framework as $F(X) = X$ and so $\alpha : X \rightarrow X$ in this case.
+    \item the group operation is a binary set-function $(\cdot) : X \times X \rightarrow X$. We have $F(X) = X \times X$, so the morphism $\alpha : X \times X \rightarrow X$ has the correct type.
+\end{itemize}
+
+But each of these are still independent pieces of a group definition.
+We must combine them somehow.
+A single morphism $\alpha : F(X) \rightarrow X$ must represent all actions you can possibly take on a group.
+One answer would be to take $F(X) = 1 \amalg X \amalg X \times X$, where $\amalg$ is the disjoint set-union operation.
+This is usually written instead as $F(X) = 1 + X + X \times X$, as we will soon generalize disjoint unions in $\Set$ to coproducts in an arbitrary category.
+
+So our combined morphism $\alpha : F(X) \rightarrow X$ essentially gives us a choice of which operation we would like to take, as well as how each is implemented.
+It should be clear at this point that each functor $F$ can possibly have multiple $\alpha : F(X) \rightarrow X$.
+This corresponds to the notion that there are multiple groups, multiple rings, multiple Boolean algebras, etc.
+
+Of course, since $F$ is a functor, it must have an action on morphisms as well.
+However, this action is mostly forced by the universal property of coproducts.
+For example, in the case of $F(X) = A \times X + B$, it must hold that $F(A_1 \times X + B_1 \xrightarrow{f} A_2 \times X + B_2)$ must also be a sum, which means it can be decomposed into two functions $f_1 : A_1 \times X \rightarrow A_2 \times X$, and $f_2 : B_1 \rightarrow B_2$.
+We will write this as $F(f) = f_1 + f_2$ or sometimes even $[f_1, f_2]$ for short.
+
+To sum this up, here is the formal definition for $F$-algebra:
+
+\begin{definition}
+  Let $\calC$ be an ambient category.
+  An $F$-algebra is a pair $(X, \alpha : F(X) \rightarrow X)$, where $X \in Ob(\calC)$, $F$ is an endofunctor $\calC \rightarrow \calC$, and $\alpha : F(X) \rightarrow X$.
+\end{definition}
