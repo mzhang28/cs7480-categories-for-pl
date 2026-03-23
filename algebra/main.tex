@@ -1,0 +1,944 @@
+% Exercise boxes
+\mdtheorem[style=theoremstyle,frametitlebackgroundcolor=black,frametitlefontcolor=white]{refinementexercise}{Exercise}
+\numberwithin{refinementexercise}{chapter}
+
+\chapter{Algebra}
+
+\section{Algebra}
+
+In algebra, there are many interesting structures to study, such as groups, rings, vector spaces, etc.
+If we look at the definitions for some common algebraic structures:
+
+\begin{itemize}
+    \item A group is a tuple $(G, \cdot, (-)^{-1})$ satisfying some axioms.
+    \item A ring is a tuple $(R, +, \cdot)$ satisfying some axioms.
+    \item A boolean algebra is a tuple $(B, \wedge, \vee, \neg)$ satisfying some axioms.
+\end{itemize}
+
+They all seem to look kind of familiar -- a carrier, usually a set, followed by some operations on that carrier, satisfying some axioms.
+It may be useful to look for an abstraction over all of these.
+
+In order to make it easier to think about abstractions for a universal algebra, we'll start by focusing our work in the category of sets $Set$.
+So our carrier will be some object in $\Set$.
+
+Now, consider an endofunctor $F : \Set \rightarrow \Set$.
+This will have two parts: an action on objects, which is simply a set function, and an action on morphisms.
+If we take $X$ to be the input carrier set, then $F(X)$ is essentially the representation of \emph{inputs} to operations you can take with $X$.
+Then, we have a morphism $\alpha : F(X) \rightarrow X$, known as the \emph{structure} map, which defines how the operations take place.
+
+For example:
+- the identity element of a group is not dependent on anything, so we say $F(X) = 1$, and so the morphism $\alpha : 1 \rightarrow X$ simply selects the identity element with no further input.
+- the inverse operation of a group is a set-function $X \rightarrow X$. This translates to our framework as $F(X) = X$ and so $\alpha : X \rightarrow X$ in this case.
+- the group operation is a binary set-function $(\cdot) : X \times X \rightarrow X$. We have $F(X) = X \times X$, so the morphism $\alpha : X \times X \rightarrow X$ has the correct type.
+
+But each of these are still independent pieces of a group definition.
+We must combine them somehow.
+A single morphism $\alpha : F(X) \rightarrow X$ must represent all actions you can possibly take on a group.
+One answer would be to take $F(X) = 1 \uplus X \uplus X \times X$, where $\uplus$ is the disjoint set-union operation.
+This is usually written instead as $F(X) = 1 + X + X \times X$, as we will soon generalize disjoint unions in $\Set$ to coproducts in an arbitrary category.
+
+So our combined morphism $\alpha : F(X) \rightarrow X$ essentially gives us a choice of which operation we would like to take, as well as how each is implemented.
+It should be clear at this point that each functor $F$ can possibly have multiple $\alpha : F(X) \rightarrow X$.
+This corresponds to the notion that there are multiple groups, multiple rings, multiple Boolean algebras, etc.
+
+Of course, since $F$ is a functor, it must have an action on morphisms as well.
+In the case of $F(X) = A \times X + B$, a functor application to a morphism $F(X \xrightarrow{f} Y)$ would have type $A \times X + B \xrightarrow{F(f)} A \times Y + B$.
+It may be useful to think of $F(f)$ as being a coproduct of morphisms $A \times X \xrightarrow{f_1} A \times Y$ and $B \xrightarrow{f_2} B$.
+This is often true for the cases we will be studying, as many of the functors for the common algebras do exhibit this property.
+However, it may not be true in general, and the categorical framework for algebra allows for functors that mix between the different components.
+Still, we will use the notation $F(f) = f_1 + f_2$ in the remainder of the notes.
+
+\begin{definition}[$F$-algebra]
+  Let $\calC$ be an ambient category. An $F$-algebra is a pair $(X, \alpha : F(X) \rightarrow X)$, where $X \in \Ob(\calC)$, $F$ is an endofunctor $\calC \rightarrow \calC$, and $\alpha : F(X) \rightarrow X$.
+\end{definition}
+
+This doesn't cover all of the group properties yet.
+We are still missing associativity and the inverse laws.
+Unfortunately, the functor $F$ primarily deals with the types of operations in an algebra, also known as the "signature", so the extra laws must be separately required.
+\marginnote{
+  There is a different construction which generates algebras from a monad, that can encapsulate having these extra axioms, but we won't really explore that here.
+}
+
+For example, we will define groups as follows:
+
+\begin{definition}[Group]
+  A group is an $F$-algebra defined by the signature $$ F(X) = 1 + X + X \times X $$ where the components are named $[e, inv, (\cdot)]$, such that the following diagrams commute:
+
+  \todo there's like 3 diagrams here
+    
+% #definition-box[
+
+% #align(center, diagram($
+%     X times (X times X) edge("rr", "=", sans("assoc")) edge("d", "->", (id, dot)) & & (X times X) times X edge("d", "->", (dot, id), label-side: #left) \
+%     X times X  edge("->", (dot), label-side: #right) & X edge("<-", (dot), label-side: #right) & X times X
+% $))
+
+% #align(center, diagram($
+%   X edge("->", (id, inv_R)) edge("d", "->", !)
+%   & X times X edge("<-", (inv_L, id)) edge("d", "->", (dot))
+%   & X edge("d", "->", !, label-side: #left) \
+%   1 edge("->", id, label-side: #right) & X edge("<-", id, label-side: #right) & 1 
+% $))
+
+% #align(center, diagram($
+%   1 times X edge("->", (e, id)) edge("dr", "=")
+%   & X times X edge("<-", (id, e)) edge("d", "->", (dot))
+%   & X times 1 edge("dl", "=", label-side: #left) \
+%   & X
+% $))
+% ]
+\end{definition}
+
+It turns out there are some interesting $F$-algebras when we consider the category of $F$-algebras themselves.
+But before we get there, we must first define what it means to have a morphism of $F$-algebras.
+As is standard in category theory, an $F$-algebra is simply an underlying carrier plus some extra data.
+We will thus define morphisms as a function between the carrier along with proof of coherence between the data:
+
+\begin{definition}[$F$-algebra morphism]
+  Let $(X, \alpha_X)$ and $(Y, \alpha_Y)$ be two $F$-algebras in a category $\calC$.
+  An $F$-algebra morphism is then a morphism $f : X \rightarrow Y$ such that the following diagram commutes:
+
+%   #align(center, diagram($
+%     F(X) edge("->", alpha_X)
+%       edge("d", "->", F(f))
+%     & X edge("d", "->", f, label-side: #left) \
+%     F(Y) edge("->", alpha_Y, label-side: #right)
+%     & Y
+%   $))
+% ] <fAlgMor>
+\end{definition}
+
+\todo exercise
+
+% #exercise[Verify that $F$-algebras form a category.]
+
+Let us now interpret this commutative square in the context of the $F$-algebras generated by each of our group operations above.
+
+% - In the case of identity, the component of $F(X)$ we are focusing on is $F(X) = 1$. So both $F(X)$ and $F(Y)$ evaluate to $1$, so $F(X) -> F(Y)$ can only be the unique identity morphism in $1$.
+%   Thus, the left side collapses and we have a triangle:
+%   #align(center, diagram($
+%   1 edge("->", alpha_X) edge("dr", "->", alpha_Y, label-side: #right)
+%   & X edge("d", "->", f, label-side: #left) \ & Y$))
+%   Translating this to group theory, this means our choice of $alpha_Y$, the function that picks out the group identity of $Y$, must agree with the result of mapping $f$ to the group identity of $X$. 
+%   In other words, group homomorphisms preserve identities.
+% - In the case of inverse, $F(X) = X$, so we have the following diagram:
+%   #align(center, diagram($
+%     X edge("->", inv_X)
+%       edge("d", "->", f)
+%     & X edge("d", "->", f, label-side: #left) \
+%     Y edge("->", inv_Y, label-side: #right)
+%     & Y
+%   $))
+%   This translates to $inv_Y compose f = f compose inv_X$, which written algebraically says that for any $x in X$, it must hold that $f(x)^(-1) = f(x^(-1))$.
+%   In other words, group homomorphisms preserve inverses.
+% - In the case of the binary operation $(dot)$, we have $F(X) = X times X$, so we have the following diagram (recall the definition of the action of $F$ on morphisms):
+%   #align(center, diagram($
+%     X times X edge("->", (dot)_X)
+%       edge("d", "->", (f, f))
+%     & X edge("d", "->", f, label-side: #left) \
+%     Y times Y edge("->", (dot)_Y, label-side: #right)
+%     & Y
+%   $))
+%   Translating this to algebra, we have $f(x dot_X y) = f(x) dot_Y f(y)$, which is the main group homomorphism property.
+
+% As you can see, the group homomorphism properties fell purely out of just instantiating our $F$-algebra morphism law with our specific group properties.
+
+% // This also holds for many other algebraic structures:
+
+% // - 
+
+% == Initial $F$-algebras and induction
+
+% We said before that $F(X)$ builds up the input data to be used by $alpha$.
+% But that's a rather abstract description.
+% To see an example of how this is used, consider a functor $F(X) = 1 + X$.
+% We can define an $F$-algebra by providing an $alpha : F(X) -> X$.
+% Expanding the type gives us $alpha : (1 + X) -> X$, which we can define by cases:
+% - $alpha_1 : 1 -> X$
+% - $alpha_X : X -> X$
+
+% Suppose we are working with an $(X, alpha)$ that is initial in the category of $F$-algebras for $F(X) = 1 + X$.
+% The defining property of an initial object is that there exists a #link(<fAlgMor>)[morphism] out of this $F$-algebra to any other $F$-algebra, such that the square commutes.
+% This morphism is commonly known as the *catamorphism*.
+
+% For example, consider any other $F$-algebra $beta : (1 + Y) -> Y$, with corresponding $[beta_1, beta_Y]$.
+% Then, there exists a _unique_ $f : X -> Y$ such that this square commutes:
+
+% #align(center, diagram($
+%   1 + X edge("->", alpha)
+%     edge("d", "->", F(f))
+%   & X edge("d", "->", f, label-side: #left) \
+%   1 + Y edge("->", beta, label-side: #right)
+%   & Y
+% $))
+
+% where $F(f)$ is defined on cases:
+% - for the left case of the sum, there is a morphism $1_X -> 1_Y$
+% - for the right case of the sum, there is a morphism $X -> Y$
+% The square forces $f$ to respect the $F$-algebra structure.
+
+% There is a sense where the initial $(F, alpha)$ shown above represents the natural numbers $NN$, and that the unique morphism $f$ is the natural number recursor.
+% Recall that the natural number recursor looks something like this:
+
+% $ natrec : (y_0 : Y) -> (y_s : Y -> Y) -> (NN -> Y) $
+
+% // The $y_0$ corresponds to the $1 : 1_NN -> 1_Y$ part, where $1_NN$ is the identity element, and the $y_s$ corresponds to the $f : Y -> Y$ part.
+% If we change $y_0$ to be of type $1_Y -> Y$ (this is equivalent, it's just a function that ignores the input), it should be clear that the inputs $y_0$ and $y_s$ represents the two cases of $beta$.
+% So really, we can reframe this as: given $beta : 1 + Y -> Y$, which is the definition of the $F$-algebra you are trying to produce, you get the unique morphism $NN -> Y$ back, since it's forced by the square.
+
+% // We will not show the complete proof here, but to show that $natrec$ is a unique morphism $NN -> Y$, we must use mathematical induction.
+% // Roughly speaking, we would show that for the zero case, any other morphism $g : NN -> Y$ that makes the square commute would have to agree with $natrec$, and then given that $f$ and $g$ agree for some $n in NN$, they must also agree on $n + 1$.
+
+% #exercise[Prove that $natrec$ is the unique morphism that makes the above square commute.]
+
+% We defined $natrec$ for naturals here, but the idea that the unique catamorphism is the recursor holds for arbitrary $F$-algebras.
+
+% #definition(title: [Recursor])[
+%   Given some functor $F$, and an initial $F$-algebra $(X, alpha)$, the recursor is the unique $F$-algebra morphism to any other $F$-algebra $(Y, beta)$.
+% ]
+
+% This generalizes to other algebra-shaped structures as well.
+% In fact, $F$-algebras generally build inductive data types.
+% For example, lists are $F(X) = 1 + A times X$ for $A$-typed lists.
+% The initial object in this category is then the pair $(X, alpha)$ defined by:
+
+% - $X$ is the set of all finite lists of type $A$.
+% - $alpha : 1 + A times X -> X$ is then defined by cases on the input:
+%   - In the case of $inl(star)$, just output the empty list.
+%   - In the case of $inr(a, x)$, output the list whose head is $a$ and tail is $x$.
+
+% #exercise[Define some other common algebraic structures using functors.]
+
+% So without initiality, what we have is only a formula for building some generic objects with this shape.
+% But there is nothing really forcing the objects to take a coproduct shape, or to behave well.
+% In fact, the initiality enforces the self-similarity of the structure map $alpha$, which we will see in the next section.
+
+\subsection{Lambek's Theorem}
+
+There seems to be some parallel between the structure of $F(X)$ and $X$ itself.
+For example, the structure map $\alpha : F(X) \rightarrow X$ seemed to be perfectly split into the same cases as $X$ itself.
+It turns out that this structure map itself is an isomorphism.
+
+\begin{definition}[Lambek's theorem]
+    \label{thm:lambekTheorem}
+    Given some functor $F$ and some $F$-algebra $(X, \alpha)$. If $(X, \alpha)$ is initial, then $\alpha$ is an isomorphism.
+\end{definition}
+
+\begin{proof}
+  We begin with our structure map
+
+    % https://q.uiver.app/#q=WzAsMixbMCwwLCJGKFgpIl0sWzEsMCwiWCJdLFswLDEsIlxcYWxwaGEiXV0=
+    \[\begin{tikzcd}
+        {F(X)} & X
+        \arrow["\alpha", from=1-1, to=1-2]
+    \end{tikzcd}\]
+
+  which is initial in the category of $F$-algebras.
+  Let us "use" this initiality by coming up with another $F$-algebra to map this to.
+  We will use $!$ to denote the catamorphism -- the unique morphism out of the initial $F$-algebra.
+
+    % https://q.uiver.app/#q=WzAsNCxbMCwwLCJGKFgpIl0sWzEsMCwiWCJdLFsxLDEsIj8iXSxbMCwxLCI/Il0sWzAsMSwiXFxhbHBoYSJdLFsxLDIsIiEiXSxbMCwzLCJGKCEpIiwyXSxbMywyXV0=
+    \[\begin{tikzcd}
+        {F(X)} & X \\
+        {?} & {?}
+        \arrow["\alpha", from=1-1, to=1-2]
+        \arrow["{F(!)}"', from=1-1, to=2-1]
+        \arrow["{!}", from=1-2, to=2-2]
+        \arrow[from=2-1, to=2-2]
+    \end{tikzcd}\]
+
+  We will choose the particular $F$-algebra defined by applying $F$ again:
+  
+    % https://q.uiver.app/#q=WzAsNCxbMCwwLCJGKFgpIl0sWzEsMCwiWCJdLFsxLDEsIkYoWCkiXSxbMCwxLCJGKEYoWCkpIl0sWzAsMSwiXFxhbHBoYSJdLFsxLDIsIiEiXSxbMCwzLCJGKCEpIiwyXSxbMywyLCJGKFxcYWxwaGEpIiwyXV0=
+    \[\begin{tikzcd}
+        {F(X)} & X \\
+        {F(F(X))} & {F(X)}
+        \arrow["\alpha", from=1-1, to=1-2]
+        \arrow["{F(!)}"', from=1-1, to=2-1]
+        \arrow["{!}", from=1-2, to=2-2]
+        \arrow["{F(\alpha)}"', from=2-1, to=2-2]
+    \end{tikzcd}\]
+
+  If we tack on a tautological square to the bottom, we get:
+
+    % https://q.uiver.app/#q=WzAsNixbMCwwLCJGKFgpIl0sWzAsMSwiRihGKFgpKSJdLFswLDIsIkYoWCkiXSxbMSwwLCJYIl0sWzEsMiwiWCJdLFsxLDEsIkYoWCkiXSxbMCwxLCJGKCEpIiwyXSxbMSwyLCJGKFxcYWxwaGEpIiwyXSxbMCwzLCJcXGFscGhhIl0sWzIsNCwiXFxhbHBoYSIsMl0sWzMsNSwiISJdLFs1LDQsIlxcYWxwaGEiXSxbMSw1LCJGKFxcYWxwaGEpIl1d
+    \[\begin{tikzcd}
+        {F(X)} & X \\
+        {F(F(X))} & {F(X)} \\
+        {F(X)} & X
+        \arrow["\alpha", from=1-1, to=1-2]
+        \arrow["{F(!)}"', from=1-1, to=2-1]
+        \arrow["{!}", from=1-2, to=2-2]
+        \arrow["{F(\alpha)}", from=2-1, to=2-2]
+        \arrow["{F(\alpha)}"', from=2-1, to=3-1]
+        \arrow["\alpha", from=2-2, to=3-2]
+        \arrow["\alpha"', from=3-1, to=3-2]
+    \end{tikzcd}\]
+
+  We can then "squish" the square using composition, and also using the functoriality of $F$ to simplify $F(\alpha) \circ F(!)$ into $F(\alpha \circ !)$:
+
+    % https://q.uiver.app/#q=WzAsNCxbMCwwLCJGKFgpIl0sWzAsMSwiRihYKSJdLFsxLDAsIlgiXSxbMSwxLCJYIl0sWzAsMiwiXFxhbHBoYSJdLFsxLDMsIlxcYWxwaGEiLDJdLFswLDEsIkYoXFxhbHBoYSBcXGNpcmMgISkiLDJdLFsyLDMsIlxcYWxwaGEgXFxjaXJjICEiXV0=
+    \[\begin{tikzcd}
+        {F(X)} & X \\
+        {F(X)} & X
+        \arrow["\alpha", from=1-1, to=1-2]
+        \arrow["{F(\alpha \circ !)}"', from=1-1, to=2-1]
+        \arrow["{\alpha \circ !}", from=1-2, to=2-2]
+        \arrow["\alpha"', from=2-1, to=2-2]
+    \end{tikzcd}\]
+
+  This is exactly the $F$-algebra morphism diagram showing that $\alpha \circ !$ is a morphism from the $F$-algebra $(X, \alpha)$ to itself.
+  Since the morphism out of an initial object is unique, we know that it must coincide with the identity morphism, so $\alpha \circ ! = \id_X$.
+  
+  This is the first half of our proof.
+  It remains to be shown that $! \circ \alpha = \id_F(X)$.
+  Using the result that $\alpha \circ ! = \id_X$, apply $F$ to both sides, getting $F(\alpha \circ !) = F(\id_X)$, which by functoriality yields $F(\alpha) \circ F(!) = \id_F(X)$.
+  But looking at this square from above:
+
+    % https://q.uiver.app/#q=WzAsNCxbMCwwLCJGKFgpIl0sWzEsMCwiWCJdLFswLDEsIkYoRihYKSkiXSxbMSwxLCJGKFgpIl0sWzAsMSwiXFxhbHBoYSJdLFsyLDMsIkYoXFxhbHBoYSkiLDJdLFsxLDMsIiEiXSxbMCwyLCJGKCEpIiwyXV0=
+    \[\begin{tikzcd}
+        {F(X)} & X \\
+        {F(F(X))} & {F(X)}
+        \arrow["\alpha", from=1-1, to=1-2]
+        \arrow["{F(!)}"', from=1-1, to=2-1]
+        \arrow["{!}", from=1-2, to=2-2]
+        \arrow["{F(\alpha)}"', from=2-1, to=2-2]
+    \end{tikzcd}\]
+
+  We know that $F(\alpha) \circ F(!) = ! \circ \alpha$.
+  Therefore, $! \circ \alpha = \id_F(X)$, and $\alpha$ is an isomorphism with inverse $!$.
+\end{proof}
+
+Since $\alpha$ is essentially defining the "constructors" of the inductive type defined by $F(X)$, one consequence of Lambek's theorem is that all constructors are invertible.
+For example, we can derive an inverse $\mathsf{suc}$ function that takes any $\mathsf{suc}(n)$ and produces $n$.
+
+% #exercise[Prove that there is no non-empty initial algebra for the functor $F(X) = A times X$ in $Set$, for any arbitrary object $A$. What does this mean in English?] <noAXinitial>
+
+\begin{example}[Applying Lambek's theorem]
+  Consider the list example again, $F(X) = 1 + A \times X$.
+Let us derive the initial $F$-algebra using Lambek's theorem.
+First, Lambek's theorem tells us that for initial algebras, $X \cong F(X)$ necessarily.
+Thus, $X \cong 1 + A \times X$.
+Since this is a fixpoint, we can start unfolding $X$ and see what happens:
+
+\begin{align*}
+    X &\cong 1 + A \times X \\
+    &\cong 1 + A \times (1 + A \times X) \\
+    &\cong 1 + A \times (1 + A \times (1 + A \times X)) \\
+    &\cong \cdots \\
+    &\cong 1 + (A \times 1) + (A \times A \times 1) + (A \times A \times A \times 1) + \cdots \\
+    &\cong 1 + A + A^2 + A^3 + \cdots
+\end{align*}
+
+This is a union of $n$-products of $A$ for all $n$, which is exactly the set of all $n$-length sequences in $A$.
+    
+\end{example}
+    
+
+\section{Coalgebra}
+
+As we know, we can get dual concepts in category theory for free by reversing the arrows.
+By dualizing algebras, we get coalgebras.
+Let's start with the definition and then try to extract some intuitions from it.
+
+\begin{definition}[$F$-coalgebra]
+  Let $\calC$ be an ambient category. An $F$-coalgebra is a pair $(X, \nu)$ where $X \in \Ob(\calC)$, $F$ is an endofunctor $\calC \rightarrow \calC$ and $\nu : X \rightarrow F(X)$.
+\end{definition}
+
+And as usual, we must also define morphisms:
+
+\begin{definition}[$F$-coalgebra morphism]
+    \label{def:fCoalgebraMorphism}
+  Let $(X, \nu_X)$ and $(Y, \nu_Y)$ be two $F$-coalgebras in a category $\calC$.
+
+  An $F$-coalgebra morphism is then a morphism $f : X \rightarrow Y$ such that the following diagram commutes:
+
+%   #align(center, diagram($
+%     X edge("->", nu_X)
+%       edge("d", "->", f)
+%     & F(X) edge("d", "->", F(f), label-side: #left) \
+%     Y edge("->", nu_Y, label-side: #right)
+%     & F(Y)
+%   $))
+\end{definition}
+
+Similar to how in algebras, we had the intuition of building up some kind of "input data" to our $\alpha$ morphism which then represented the constructors for our $X$, we would like to think of coalgebras as functions out of $X$, giving us some \emph{one-step} observation data that may involve $X$.
+
+Let's work through an example that might solidify this intuition.
+Once again, we are working temporarily in the category of sets, so let $X$ be a set.
+Consider the endofunctor $F(X) = 1 + A \times X$.
+In algebras, this corresponds to the signature for list-y structures.
+
+We will see now what the dual to list-y things are.
+To complete the definition of an $F$-coalgebra, we need a structure map of type $\nu : X \rightarrow F(X)$, which when unfolded, is $\nu : X \rightarrow 1 + A \times X$.
+Whereas in algebras, the structure map served a purpose of consuming the structure into a single $X$, here we have $nu$ expanding the $X$ into its observable data.
+
+Our intuition tells us that $X$ is supposed to be list-y.
+So let's say our $\nu$ does case analysis to see if our list is $\mathsf{cons}$ or $\mathsf{nil}$.
+In the case of $\mathsf{cons}$, we return $A \times X$, which is the head and tail separately.
+In the case of $\mathsf{nil}$, we return $1$.
+So whereas our $F$-algebra from before was building \emph{up} a list, now our $F$-coalgebra is essentially mapping \emph{out} of a list.
+
+Compared to the algebraic version, this one sort of axiomatizes observations out of the list rather than building up the exact list structure.
+We assume the list exists as a mystery object, and are able to decompose it into an element and "the rest of the stream," which continues being the mystery object.
+
+We also have a version of Lambek's theorem for coalgebra:
+
+\begin{theorem}[Lambek's theorem for coalgebra]
+    \label{thm:lambekCoalgebra}
+  Given some functor $F$ and some $F$-coalgebra $(X, \nu)$. If $(X, \nu)$ is terminal, then $nu$ is an isomorphism.
+\end{theorem}
+
+% #exercise[Prove @lambekCoalgebra.]
+
+Of course, with coalgebraic lists, we could also imagine a situation where we have a definition that continuously returns an element of the $A \times X$ side, and never returns the $1$.
+In this case, the list would never end.
+We cannot formulate this type using algebraically defined data, but with coalgebraically defined codata, this is completely in bounds.
+In fact, we may even specify that the stream \emph{cannot} ever end.
+In this case, we only need to use signature functor $F(X) = A \times X$, opting not to include the extra $1$.
+This is useful for reasoning about applications such as servers which are designed to run and continue responding to input forever.
+In the next section we will discuss the terminal $F$-coalgebra and coinduction.
+
+\subsection{Coinduction and bisimulation}
+
+Recall that a terminal object has morphisms into it from every other object.
+These morphisms are typically called \textbf{anamorphisms}.
+To see an example, let's work in $\Set$ again, with the stream functor, where $F(X) = A \times X$, for some type $A$.
+This represents streams of elements with type $A$.
+
+We can use \cref{thm:lambekCoalgebra} to derive what the terminal coalgebra should look like.
+Starting with $X \cong A \times X$, we can unfold several times to get $X \cong A \times A \times A \times \cdots$.
+This is an unending product of $A$ by itself, which is the same as the function space $\mathbb{N} \rightarrow A$.
+We can also write this as $A^\mathbb{N}$, using exponential notation for functions.
+
+Next is to define the structure map, $\nu_X : X \rightarrow A \times X$.
+Of course, we don't really have a choice in this matter either -- it must follow from the terminality conditions.
+An obvious choice would be to just pick the head and tail and return that as a pair.
+
+\begin{definition}
+    \label{def:reassociateHeadTail}
+    The structure map for the terminal $F$-coalgebra defined by $F(X) = A \times X$ is 
+    \begin{align*}
+        \nu_X &: X \rightarrow A \times X \\
+        \nu_X ((a_0, a_1, a_2, \cdots)) &= a_0, (a_1, a_2, \cdots)
+    \end{align*}
+\end{definition}
+
+But does this choice work?
+We must check that all the rules are satisfied.
+
+\begin{lemma}
+    \label{lem:fExists}
+    For any $F$-coalgebra $(Y, \nu_Y)$, there exists a morphism $f : (Y, \nu_Y) \rightarrow (X, \nu_X)$.
+\end{lemma}
+
+\begin{proof}
+    
+  First, we must show that for any $(Y, \nu_Y)$, that an $f : Y \rightarrow X$ even exists.
+We will do so by generating a sequence of $a$'s from $\nu_Y$.
+First, begin with $y \in Y$, and run $\nu_Y (y)$ to get $y_1 : A \times Y$.
+We'll take the first element $\mathsf{head}(y_1) : A$ as the first observation, and keep the rest which is $\mathsf{tail}(y_1) : Y$.
+Then, we can repeat the process, running $\nu_Y (y_1)$ to get $y_2 : A \times Y$.
+By continuing to repeat this process, we'll just end up with an infinite series of $a$'s, which we can write as $a_0, a_1, a_2, \cdots$.
+We'll refer to this as the \emph{behavior} of $Y$.
+Notice that we didn't need to depend on what the structure of $Y$ was.
+
+Now we need to verify that our choice of $f$ is well-behaved, with regards to all of the conditions we defined earlier.
+Let us revisit the commuting square from \cref{def:fCoalgebraMorphism}:
+
+    % https://q.uiver.app/#q=WzAsNCxbMCwwLCJZIl0sWzEsMCwiQSBcXHRpbWVzIFkiXSxbMCwxLCJBXlxcbWF0aGJie059Il0sWzEsMSwiQSBcXHRpbWVzIEFeXFxtYXRoYmJ7Tn0iXSxbMCwyLCJmIiwyXSxbMSwzLCJGKGYpIl0sWzAsMSwiXFxudV9ZIl0sWzIsMywiXFxudV9YIiwyXV0=
+    \[\begin{tikzcd}
+        Y & {A \times Y} \\
+        {A^\mathbb{N}} & {A \times A^\mathbb{N}}
+        \arrow["{\nu_Y}", from=1-1, to=1-2]
+        \arrow["f"', from=1-1, to=2-1]
+        \arrow["{F(f)}", from=1-2, to=2-2]
+        \arrow["{\nu_X}"', from=2-1, to=2-2]
+    \end{tikzcd}\]
+
+Translating this to an equation, we get:
+
+\begin{equation}
+    \nu_X \circ f = F(f) \circ \nu_Y
+\end{equation} 
+
+First, note that it is necessary that $F(f) = \id \times f$.
+This is because of the functoriality of $F$, similar to how our $F$s earlier had to be a coproduct.
+So really, we have:
+
+\begin{equation}
+    \nu_X \circ f = (\id \times f) \circ \nu_Y
+\end{equation}
+
+This requires us to show that $\nu_Y$ indeed produces the head element of the list that we are manipulating in $\nu_X$.
+More literally, if we have $y \in Y$, then $f(\mathsf{tail}(\nu_Y (y)))$ must produce the same thing as just taking the tail end of $f(y)$.
+This is just true by definition.
+To spell it out with elements, we have:
+
+\begin{align*}
+    \nu_X (f(y)) &= (\id \times f) ( \nu_Y (y)) \\
+    \nu_X ((a_0, a_1, a_2, \cdots)) &= \\
+    a_0, (a_1, a_2, \cdots) &= \\
+    &= (\id \times f) ( \nu_Y (y)) \\
+    &= (\id \times f) (a_0, y_1) \\
+    &= a_0, f(y_1) \\
+\end{align*}
+
+As noted above, $y_1$ is just the next sequence after $y$, so it will produce $a_1, a_2, \cdots$ by $f$.
+So this commuting square checks out.
+\end{proof}
+
+\begin{lemma}
+    \label{lem:fUnique}
+The morphism $f$ defined in \cref{lem:fExists} is unique.
+\end{lemma}
+
+For this, we'll need to use a different kind of reasoning than before.
+We will have to use \textbf{coinduction}, which is dual to induction and is perfect for working with codata such as streams.
+
+\begin{proof}
+  Suppose we have $g : Y \rightarrow A^\mathbb{N}$ that respects the square.
+We would like to show that $f = g$.
+Extensionally, this means $f$ and $g$ produce the same output on all inputs, as functions.
+Now, $g$ is an unknown function, but it has the shape $Y \rightarrow A^\mathbb{N}$, so we know it produces an infinite stream of $a$'s.
+Furthemore, we know that:
+
+    % https://q.uiver.app/#q=WzAsNCxbMCwwLCJZIl0sWzEsMCwiQSBcXHRpbWVzIFkiXSxbMCwxLCJBXlxcbWF0aGJie059Il0sWzEsMSwiQSBcXHRpbWVzIEFeXFxtYXRoYmJ7Tn0iXSxbMCwyLCJnIiwyXSxbMSwzLCJcXGlkIFxcdGltZXMgZyJdLFswLDEsIlxcbnVfWSJdLFsyLDMsIlxcbnVfWCIsMl1d
+    \[\begin{tikzcd}
+        Y & {A \times Y} \\
+        {A^\mathbb{N}} & {A \times A^\mathbb{N}}
+        \arrow["{\nu_Y}", from=1-1, to=1-2]
+        \arrow["g"', from=1-1, to=2-1]
+        \arrow["{\id \times g}", from=1-2, to=2-2]
+        \arrow["{\nu_X}"', from=2-1, to=2-2]
+    \end{tikzcd}\]
+
+which says that $\nu_X \circ g = (\id \times g) \circ \nu_Y$.
+This means at least the first element of the sequence produced by $g$ must be picked out by $\nu_Y$.
+Otherwise, $\id(\mathsf{head}(\nu_Y (y)))$ would not produce the same result as $\mathsf{head}(\nu_X (g(y)))$.
+Thus, the first element of the sequence must be $\mathsf{head}(\nu_Y (y))$.
+
+Then, regarding the tail end of the sequence, we would like to argue coinductively that it must follow the same shape.
+Specifically, let $\nu_Y (y) = (a_0, y')$.
+Following the top-right path, we can see that the tail part of the result is $g(y')$.
+Since $g$ is unknown, we can't really say what this is yet, but we can look at the left-bottom path, which tells us that the tail part of the result must be $\mathsf{tail}(g(y))$, since as a reminder, our $nu_X$ specifically splits a sequence $A^\mathbb{N}$ into its $\mathsf{head}$ and $\mathsf{tail}$ parts.
+This tells us that $g(y') = \mathsf{tail}(g(y))$, which is exactly what we expect.
+
+So putting this together with $f$, we know that both $\mathsf{head}(f(y))$ and $\mathsf{head}(g(y))$ result in $\mathsf{fst}(\nu_Y (y))$.
+So $f(y)$ and $g(y)$ agree on that part.
+For the tail segment, we know that $\mathsf{tail}(g(y)) = g(y')$.
+It turns out this is also true of $f$, due to how we defined it: $\mathsf{tail}(f(y)) = f(y')$.
+Thus, to determine if $\mathsf{tail}(f(y)) = \mathsf{tail}(g(y))$, it suffices to show that $f(y') = g(y')$.
+But since $y'$ is exactly self-similar to $y$, by coinduction, we know that $f(y') = g(y')$.
+\end{proof}
+
+In the above proof, we used function extensionality to show that $f$ and $g$ are equal.
+But for showing two coalgebra are "the same," it is often more convenient to use a weaker notion of equivalence.
+A classic example is of automata, which we will see more about in a later section.
+It is completely sensical to have two automata that capture the same language (yielding the same transitions), yet have different non-reconcilable states.
+For this, we will introduce bisimulation.
+
+\begin{definition}[Bisimulation of streams]
+    
+\label{def:bisimulationOfStreams}
+  Let $(X, \nu_X)$ and $(Y, \nu_Y)$ be $F$-coalgebras, where $F(X) = A \times X$.
+  Let $R$ be a relation between $X$ and $Y$ -- specifically, $R \subset X \times Y$.
+  $R$ is a \textbf{bisimulation} iff for any $(x, y) \in R$:
+
+  \begin{equation}
+    \mathsf{head}(x) = \mathsf{head}(y) \wedge (\mathsf{tail}(x), \mathsf{tail}(y)) \in R
+  \end{equation}
+\end{definition}
+
+Then, it is said that $X$ and $Y$ are \textbf{bisimilar}.
+This sort of looks like a more generalized version of the reasoning we did as a part of the uniqueness proof, but with equality replaced with the relation $R$.
+But the reasoning is still stream-specific, and relatively ad-hoc.
+We'd like to not have to make arbitrary bisimulation conditions for every type we'd like to analyze.
+
+It turns out if we just take everything that has specifically to do with streams and abstract it, we can arrive at a more general notion of bisimulation.
+
+
+\begin{definition}[Aczel-Mendler bisimulation]
+  Let $\calC$ be a category with products, and $F : \calC \rightarrow \calC$ be an endofunctor.
+  Let $(X, \nu_X)$ and $(Y, \nu_Y)$ be $F$-coalgebras.
+  Let $R$ be a subobject of the product object $X \times Y$ with projection morphisms $\pi_X$ and $\pi_Y$ such that there exists a morphism $\nu_R : R \rightarrow F(R)$ such that the following diagram commutes:
+
+    % https://q.uiver.app/#q=WzAsNixbMSwwLCJSIl0sWzAsMCwiWCJdLFsyLDAsIlkiXSxbMSwxLCJGKFIpIl0sWzIsMSwiRihZKSJdLFswLDEsIkYoWCkiXSxbMyw1LCJGKFxccGlfMSkiXSxbMyw0LCJGKFxccGlfMikiLDJdLFswLDEsIlxccGlfMSIsMl0sWzAsMiwiXFxwaV8yIl0sWzIsNCwiXFxudV9ZIl0sWzAsMywiXFxudV9SIl0sWzEsNSwiXFxudV9YIiwyXV0=
+    \[\begin{tikzcd}
+        X & R & Y \\
+        {F(X)} & {F(R)} & {F(Y)}
+        \arrow["{\nu_X}"', from=1-1, to=2-1]
+        \arrow["{\pi_1}"', from=1-2, to=1-1]
+        \arrow["{\pi_2}", from=1-2, to=1-3]
+        \arrow["{\nu_R}", from=1-2, to=2-2]
+        \arrow["{\nu_Y}", from=1-3, to=2-3]
+        \arrow["{F(\pi_1)}", from=2-2, to=2-1]
+        \arrow["{F(\pi_2)}"', from=2-2, to=2-3]
+    \end{tikzcd}\]
+\end{definition}
+
+Let's quickly make sense of this in the context of our previous \cref{def:bisimulationOfStreams} again.
+We have some relation $R$ which is a subobject of the product.
+This corresponds exactly with $R \subset X \times Y$.
+The rough interpretation of this is that at the current state, $X$ and $Y$ are related through $R$.
+
+Then, we have the object $F(R)$, which is a lift of the product through $F$.
+So for streams, since $F(X) = A \times X$, we have $F(R) \subset (A \times X) \times (A \times Y)$.
+Notice how this part is completely determined by the specific $F$'s interaction with the relation.
+The $\nu_R$ lifting operation simply calls $\mathsf{head}$ and $\mathsf{tail}$ component-wise on both the left and right sides.
+Then, the $F(\pi_1)$ projection operator would grab the components separately and turn them into a product, and $F(\pi_2)$ does the corresponding thing for $F(Y)$.
+
+The commuting squares, like earlier, essentially force us to take this component-wise motion.
+
+\begin{refinementexercise}
+    Does the category of $F$-algebras have an initial object for any $F$? Does the category of $F$-coalgebras have a terminal object for any $F$?
+\end{refinementexercise}
+
+\section{Automata}
+
+We have been working a lot with streams so far, so from here on we will be introducing some richer coalgebras that have applications in other fields.
+Automata are a classic example of coalgebras in practice.
+At a high level, an automaton is a state machine that has states and transitions between them.
+It has a notion of "accept" states which allow the machine to respond with a success response.
+This is often used in recognizing languages, such as in parsing for compiler development, but also for network protocols and hardware state machines. 
+
+We'll look at how automata can be abstracted using algebras and coalgebras, and then work through a generalization of Brzozowski's minimization algorithm using our definition, in order to see how to use the duality of algebras and coalgebras in order to achieve minimization.
+Let's start with a formal definition of automata.
+
+\begin{definition}
+  For some alphabet $\Sigma$, a *deterministic automaton (DA)* is a 4-tuple $(Q, \delta, i, F)$:
+  \begin{itemize}
+    \item $Q$, a set of states
+    \item $\delta : Q \times \Sigma \rightarrow Q$, a transition map
+    \item $i \in Q$, an initial state
+    \item $F \subseteq Q$, final states
+  \end{itemize}
+\end{definition}
+
+Visually, we can represent an automaton like this:
+
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[
+  node distance=4em,
+  every state/.style={draw, circle, minimum size=2em},
+  >=stealth
+]
+  \node[state] (q0) {$q_0$};
+  \node[state, right=of q0] (q1) {$q_1$};
+  \node[state, accepting, right=of q1] (q2) {$q_2$};
+
+  \draw[->] (-1.5, 0) -- node[above] {\texttt{start}} (q0);
+  \draw[->] (q0) -- node[above] {\texttt{b}} (q1);
+  \draw[->] (q1) -- node[above] {\texttt{c}} (q2);
+  \draw[->] (q1) edge[out=120, in=60, looseness=5] node[above] {\texttt{b}} (q1);
+  \draw[->] (q0) edge[bend right=40] node[below] {\texttt{a}} (q2);
+\end{tikzpicture}
+\end{figure}
+
+This visualization represents the formal automaton defined as $(\{q_0, q_1, q_2\}, \{\mathtt{a}, \mathtt{b}, \mathtt{c}\}, \delta, q_0, \{q_2\})$ where $\delta$ would map:
+
+\begin{itemize}
+    \item $(\mathtt{a}, q_0) \mapsto q_2$
+    \item $(\mathtt{b}, q_0) \mapsto q_1$
+    \item $(\mathtt{b}, q_1) \mapsto q_1$
+    \item $(\mathtt{c}, q_1) \mapsto q_2$
+    \item all other combinations of states would resolve to an implicit "error" state (which would also be in $Q$), which only has transitions back to itself.
+\end{itemize}
+
+  It does not appear in $F$, the set of final states.
+  For all intents and purposes in these notes, we can safely just ignore the fact that it exists, although we should formally make a mental note of the erroring behavior, since $\delta$ is not a partial function.
+
+The double-circle means that $q_2$ is a final state, in other words, that $q_2 \in F$.
+This automaton will recognize a language consisting of either the exact string \texttt{a} or any non-zero number of \texttt{b}s followed by a \texttt{c}.
+This is typically written using the terse regular expression syntax as \texttt{a|(b+)c}.
+
+Formally, a language $\calL$ is just a series of strings consisting of symbols in the alphabet $\Sigma$.
+An automaton \textbf{recognizes} a language if for every string $s$ in the language, running $s$ through the automaton would result in a final state.
+
+There is also a variant which allows non-deterministic transitions -- for example, it would be allowed to have multiple arrows from the same state with the same transition.
+This machine is known as a \emph{non-deterministic} automaton.
+
+\begin{definition}[Non-deterministic automaton]
+  For some alphabet $\Sigma$, a \textbf{non-deterministic automaton} is a 4-tuple $(Q, \delta, i, F)$:
+
+  \begin{itemize}
+    \item $Q$, a set of states
+    \item $\delta : Q \times \Sigma \rightarrow \calP(Q)$, a transition map
+    \item $i \in Q$, an initial state
+    \item $F \subseteq Q$, final states
+  \end{itemize}
+\end{definition}
+
+The $\delta$ is the only difference from the DA definition.
+Instead of only transitioning to one state, it could possibly transition to any number of states.
+A non-deterministic automata would accept a string from a language if taking any path using the symbols of the string would result in acceptance.
+
+Traditionally, non-deterministic automata would be converted deterministic using an algorithm such as the powerset construction, in which you would consider the set of all states that could possibly result following a particular transition.
+There are also some methods of evaluating non-deterministic automata directly without first doing the conversion, as the conversion may produce an explosion ($O(2^n)$) of states in the resulting DA.
+
+For this section, we will consider a particular problem concerning automata: there is a sense in which an NFA might not be minimal.
+For example, consider this automaton:
+
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[
+  node distance=4em,
+  every state/.style={draw, circle, minimum size=2em},
+  >=stealth
+]
+  \node[state, accepting] (q0) {$q_0$};
+  \node[state, right=of q0] (q1) {$q_1$};
+  \node[state, right=of q1] (q2) {$q_2$};
+  \node[state, right=of q2] (q3) {$q_3$};
+
+  \draw[->] (q0) -- node[above] {\texttt{a}} (q1);
+  \draw[->] (q1) -- node[above] {\texttt{a}} (q2);
+  \draw[->] (q2) -- node[above] {\texttt{a}} (q3);
+  \draw[->] (q3) edge[bend right=30] node[above] {\texttt{a}} (q1);
+\end{tikzpicture}
+\end{figure}
+
+You could easily imagine collapsing all of these down to a single node.
+Due to this, there are several minimization algorithms.
+A well-known algorithm, due to Brzozowski, involves reversing the NFA, determinizing it using the powerset construction, and then reversing it again.
+In this next section, we will investigate a category-theoretic approach by the paper\cite{bonchiAlgebracoalgebraDualityBrzozowskis2014} to show why this works, specifically for the case of deterministic automata.
+
+\subsection{The category of automata}
+
+In order to categorify automata, we must first identify a category.
+We want the objects to be automata, so we must define some morphisms.
+
+\begin{definition}[Automaton morphism]
+    \label{def:automatonMorphism}
+  For some alphabet $\Sigma$, a morphism between two automata $(Q_1, \delta_1, i_1, F_1)$ and $(Q_2, \delta_2, i_2, F_2)$ is defined as a function $f : Q_1 \rightarrow Q_2$ such that the following hold:
+
+  \begin{itemize}
+    \item $f$ commutes with the transition map, or in other words, for any $s \in \Sigma$, this square commutes:
+
+        % https://q.uiver.app/#q=WzAsNCxbMCwwLCJRXzEiXSxbMSwwLCJRXzIiXSxbMCwxLCJRXzEiXSxbMSwxLCJRXzIiXSxbMCwxLCJmIl0sWzIsMywiZiIsMl0sWzAsMiwiXFxkZWx0YV8xKC0scykiLDJdLFsxLDMsIlxcZGVsdGFfMigtLHMpIl1d
+        \[\begin{tikzcd}
+            {Q_1} & {Q_2} \\
+            {Q_1} & {Q_2}
+            \arrow["f", from=1-1, to=1-2]
+            \arrow["{\delta_1(-,s)}"', from=1-1, to=2-1]
+            \arrow["{\delta_2(-,s)}", from=1-2, to=2-2]
+            \arrow["f"', from=2-1, to=2-2]
+        \end{tikzcd}\]
+    
+  \item $f$ preserves the initial state, or in other words $f(i_1) = i_2$
+  \item $f$ preserves the final states, or in other words $f(q) \in F_2$ for all $q \in F_1$
+  \end{itemize}
+\end{definition}
+
+Thus, we can form a category of DAs:
+
+\newcommand{\DA}{\mathsf{DA}}
+
+\begin{definition}[Category of deterministic automata, $\DA_\calL$]
+    
+  For some alphabet $\Sigma$ and language over that alphabet $\calL$, the category $\DA_\calL$ is defined as a category where:
+
+  \begin{itemize}
+    \item objects are DAs that recognize the language $\calL$
+    \item morphisms are defined as in \cref{def:automatonMorphism}
+  \end{itemize}
+\end{definition}
+
+It's important that the category itself is parameterized by a language $\calL$, since morphisms need to preserve the language.
+If this was not the case, then we could not have initial or final objects at all -- it would essentially require that all automata at all recognize the same language, which is not the case.
+Such a category would still exist, and in fact $\DA_\calL$ is a subcategory of that category, but it is not useful to us.
+
+\begin{remark}
+  We can characterize a DA categorically as \emph{both} and algebra and as a coalgebra.
+  As an algebra, it uses the signature functor
+  
+    \begin{equation}
+    F(Q) = 1 + \Sigma \times Q
+    \end{equation}
+
+  In order to represent an automata as an algebra, we would need a structure map of type $\alpha : 1 + \Sigma \times Q \rightarrow Q$.
+  The $1 \rightarrow Q$ part represents the initial state, since it takes no input, and $\Sigma \times Q \rightarrow Q$ is the type of a transition map -- it takes a transition symbol, a state, and outputs the next state.
+  
+  As a coalgebra, it can be characterized with the signature functor:
+  
+  \begin{equation}
+    F(Q) = 2 \times Q^\Sigma
+  \end{equation}
+  
+  For the coalgebra case, we need a structure map $\nu : Q \rightarrow 2 \times Q^\Sigma$.
+  For any input state $q \in Q$, the $Q^\Sigma$ part of the output represents all possible states that the input state could transition to, and $2$ refers to a tag on each state that is assigned the value $1$ if that state is a final state, or the value $0$ if it isn't.
+\end{remark}
+
+\subsection{Minimality of automata}
+
+Next, let us consider the initial and terminal objects of $\DA_\calL$.
+We'd like to determine some automaton that recognizes $\calL$ and has a morphism to every other automaton.
+A pretty trivial "maximal" object that lets us do this is to add every single possible word as a state.
+
+Formally, let's define this automaton:
+
+\newcommand{\Init}{\mathsf{Init}}
+\begin{definition}[Initial object of $\DA_\calL$]
+ Define the initial automaton $\Init$ as: 
+ \begin{itemize}
+    \item $Q_\Init$ is defined as $\Sigma^*$, the set of all strings over the alphabet $\Sigma$
+    \item $\delta_\Init : Q \times \Sigma \rightarrow Q$ simply concatenates the currently running state's string with the transition symbol
+    \item $i_\Init$ is the state corresponding to the empty string
+    \item $F_\Init$ are the states corresponding to all strings in $\calL$
+ \end{itemize}
+\end{definition}
+
+Of course, we must show that it is in fact initial.
+
+\begin{theorem}
+    The automaton described above is initial in $\DA_\calL$.
+\end{theorem}
+
+\begin{proof}
+  Consider some other automaton $(Q', \delta', i', F')$.
+  We must define a morphism from $\Init$ to this automaton.
+
+  First, define $f : Q_\Init \rightarrow Q'$.
+  For every state $q \in Q_\Init$, there is a corresponding string $s \in \Sigma^*$.
+  We will define $f$ to map $s$ to a state in $Q'$ by running $Q'$ -- in other words, starting with $i'$ and transforming it using $\delta'$ on each symbol of $s$, and then returning the final state that it landed in.
+
+  We must show that $f$ commutes with the transition map, or in other words, for any symbol $t \in \Sigma$:
+  
+  \begin{equation}
+  f \circ \delta_\Init (-, t) = \delta' (-, t) \circ f
+  \end{equation}
+  Let $q \in Q_\Init$ be an arbitrary state in $\Init$, and $s \in \Sigma^*$ be the corresponding string.
+  Then, we are trying to show that $f(\delta_\Init (q, t)) = \delta'(f(q), t)$.
+  Since $\delta_\Init$ is defined by concatenation, we have $f(\delta_\Init (q, t)) = f(s + t)$ on the left side.
+  Since $f$ simply runs $\delta'$ iteratively, this is actually true \emph{by the definition} of $f$.
+
+  It is trivial to show that $f$ also preserves the initial and final states.
+
+  In order to show $f$ is the unique such morphism, assume $g : Q_\Init \rightarrow Q'$.
+  We need to show for any state $q$, that $f(q) = g(q)$.
+  Since the states map one-to-one with all strings $\Sigma^*$, perform induction on strings.
+  For the empty string, the corresponding state is the initial state, which is preserved by the requirement of the automaton morphism.
+  Thus, $f(i_\Init) = g(i_\Init) = i'$.
+
+  For the inductive case, assume $f(q) = g(q)$. Then, for any symbol $t \in \Sigma$, identify the state corresponding to concatenating $s + t$ (once again letting $s$ be the string corresponding to $q$).
+  We must show $f(s + t) = g(s + t)$.
+  By the commutative square, we can rewrite this property to $\delta'(f(q), t) = \delta'(g(q), t)$.
+  Since $f(q) = g(q)$ by our inductive hypothesis, the two sides are identical.
+\end{proof}
+
+\begin{proof}[Alternate proof]
+    
+  Note that automata behave algebraically.
+  Use \cref{thm:lambekTheorem} to deduce that the structure map $1 + \Sigma \times Q \rightarrow Q$ must be an isomorphism, so:
+
+  \begin{equation}
+        Q \cong 1 + \Sigma \times Q
+  \end{equation}
+
+  Expanding this, we get: $Q \cong 1 + \Sigma \times (1 + \Sigma \times (1 + \Sigma \times \cdots))$, which simplifies to $1 + \Sigma + \Sigma^2 + \Sigma^3 \cdots$.
+  This is exactly $\Sigma^*$ -- all strings of all lengths, sourced from the alphabet.
+  \marginnote{
+  In fact, this approach can be used to derive the initial automaton.
+  I didn't realize this until after I wrote the previous proof...
+  However, I left the original proof in, because it actually defines the function needed for the morphism. 
+  }
+
+\end{proof}
+
+The rough design of this morphism is that for some arbitrary automaton $Q$, we're running every possible string in $\Sigma^*$ to see which states are able to be reached via $Q$, and capturing that in a single function $f$.
+
+We're interested specifically in automata where every state is reachable.
+This means there's no redundancies in the states -- if you had some redundant state that isn't final, then only running $\delta$ until completion would completely miss that state, excluding it from the image of the morphism out of the initial automaton.
+We capture this with the following definition:
+
+\begin{definition}[Reachable automaton]
+    \label{def:reachableAutomaton}
+  An automaton $Q$ is \textbf{reachable} if the unique morphism out of the initial automaton $\Init \rightarrow Q$ is an epimorphism.
+\end{definition}
+
+In sets, epimorphisms (set functions) capture the notion of surjectivity, which means every element of the codomain has a pre-image.
+Since automata are essentially sets with more structure, a morphism being epic captures the same notion, which in automata corresponds to every state being reached by a morphism.
+If this property is true of the morphism out of the initial automaton (which remember, runs every possible string through the automaton), we know every state is being used, which captures our desired property of reachability.
+
+There is a similar construction on the coalgebraic side.
+We can imagine a terminal automaton, which has morphisms going into it from any other automaton.
+For some arbitrary automaton $Q$, we'd imagine that the result of a morphism should be some \emph{observation} of the states in $Q$.
+So the terminal automaton should be a collective observation about all possible automata in $\DA_\calL$.
+
+\newcommand{\Term}{\mathsf{Term}}
+\begin{definition}[Terminal object in $\DA_\calL$]
+  The terminal automaton $\Term$ is defined as:
+  \begin{itemize}
+    \item
+        $Q_\Term$ is the set of all possible subsets of $\Sigma^*$.
+        This represents all languages that could possibly be recognized for this alphabet.
+    \item
+        $\delta_\Term : Q \times \Sigma \rightarrow Q$ maps every $(q, s) \in Q \times \Sigma$ to the state representing the remainder of the language after consuming the prefix $s$.
+        This is also known as the \emph{Brzozowski derivative}.
+    \item $i_\Term$ is the language $\calL$.
+    \item $F_\Term$ is the set of all languages that contain the empty string $\varepsilon$.
+  \end{itemize}
+\end{definition}
+
+Staring at this definition, it may kind of make sense why this could capture all observations, but let's make this concrete by actually proving terminality.
+
+\begin{theorem}
+    The automaton described above is final in $\DA_\calL$.
+\end{theorem}
+
+\begin{proof}
+This proof largely follows in the same vein as the initial object proof.
+As such, we will skip some parts of it for brevity. Just trust me :)
+
+Consider some other automaton $(Q', \delta', i', F')$.
+We'll now define $f : Q' \rightarrow Q_\Term$.
+For any state $q \in Q'$, we will consider the automaton that has the same states and transitions as $Q'$, but with initial state $q$.
+The language that this automaton recognizes will be a set of a strings, which is a subset of $2^{\Sigma^*}$.
+This language is the output of $f$.
+
+The exercise of verifying that $f$ preserves the initial and final states as well as the transition map is left to the reader.
+\end{proof}
+
+\begin{refinementexercise}
+    Verify that $f$ satisfies the requirements for being a $\DA_\calL$-morphism.
+\end{refinementexercise}
+
+\begin{proof}[Alternative proof]
+  Same as before, notice that $\DA_\calL$ is coalgebraic and use \cref{thm:lambekCoalgebra}.
+  The structure map $\nu : Q \rightarrow 2 \times Q^\Sigma$ must be an isomorphism, so:
+
+  \begin{equation}
+    Q \cong 2 \times Q^\Sigma
+  \end{equation}
+
+Expanding this, we get 
+
+\begin{align*}
+  Q &\cong 2 \times \left(2 \times \left(2 \times (\cdots)^\Sigma\right)^\Sigma\right)^\Sigma \\
+  &= 2 \times 2^\Sigma \times (2 \times (\cdots)^\Sigma)^{\Sigma^2} \\
+  &= 2 \times 2^\Sigma \times 2^{\Sigma^2} \times (\cdots)^{\Sigma^3} \\
+  &= 2 \times 2^\Sigma \times 2^{\Sigma^2} \times 2^{\Sigma^3} \times \cdots \\
+  &= 2^{1 + \Sigma + \Sigma^2 + \Sigma^3 + \cdots} \\
+  &= 2^{\Sigma^*}
+\end{align*}
+
+  Thus, $2^{\Sigma^*}$ is the state space for the terminal automaton.
+\end{proof}
+
+% The rough design for this morphism is that we're mapping the automaton to what language it recognizes, inside of $Term$.
+% In that sense, this morphism would capture the behavior of all the strings that could possibly be recognized by the automaton.
+
+% This captures another important property, which is that every state is distinct.
+% Without this property, you could have two states which recognize the same suffix language.
+% That wouldn't be very minimal.
+% For minimality, we care specifically that there are no duplicate states that can just be merged.
+% This can be captured by the definition of observability, which is dual to @reachableAutomaton:
+
+% #definition(title: [Observable automaton])[
+%   An automaton $Q$ is *observable* if the unique morphism into the terminal automaton $Q -> Term$ is a monomorphism.
+% ] <observableAutomaton>
+
+% Again, to make a comparison to sets, a set function is monic if it is injective, or that distinct inputs map to distinct outputs.
+% Thus, a morphism in $\DA_\calL$ is monic if it maps distinct input states to distinct output states.
+% If our output state is the terminal automaton, then two states mapping into the same output state means that they recognized the same language, which would mean they were duplicated.
