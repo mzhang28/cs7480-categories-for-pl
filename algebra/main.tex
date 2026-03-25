@@ -1051,51 +1051,60 @@ Here we introduce a powerful property of the contravariant powerset functor:
 \end{lemma}
 
 \begin{proof}
-%   The contravariant powerset functor is $PP^* : opp(Set) -> Set$.
-%   Its opposite functor would be $opp(PP^*) : Set -> opp(Set)$.
-%   This amounts to showing that for any $X, Y in Set$:
+  The contravariant powerset functor is $\calP^* : \opp{\Set} \rightarrow \Set$.
+  Its opposite functor would be $\opp{{\calP^*}} : \Set \rightarrow \opp{\Set}$.
+  This amounts to showing that for any $X, Y \in \Set$:
 
-%   $ Hom_(Set) (PP^* (X), Y) &tilde.equiv Hom_Set (X, opp(PP^*)(Y)) \ 
-%   Hom_Set (Y, PP^*(X)) &tilde.equiv Hom_Set (X, opp(PP^*)(Y))
-%   $
+  \begin{align}
+    \Hom_{\Set} (\calP^* (X), Y) &\cong \Hom_{\Set} (X, \opp{{\calP^*}}(Y)) \\
+    \Hom_{\Set} (Y, \calP^*(X)) &\cong \Hom_{\Set} (X, \opp{{\calP^*}}(Y))
+  \end{align}
 
-%   and really, both $PP^*$ and $op(PP^*)$ have the same action on sets, which is to turn them into their power sets. So really, we are trying to show:
+  and really, both $\calP^*$ and $\opp{{\calP^*}}$ have the same action on sets, which is to turn them into their power sets. So really, we are trying to show:
 
-%   $ Hom(Y, PP(X)) &tilde.equiv Hom(X, PP(Y)) $
+  \begin{equation}
+    \Hom(Y, \calP(X)) \cong \Hom(X, \calP(Y))
+  \end{equation}
 
-%   We can show this via creating a bijection.
-%   First, the forward direction: define $fwd : Hom(Y, PP(X)) -> Hom(X, PP(Y))$ with the function $lambda (f : Y -> PP(X)) . lambda (x : X) . {y in Y | x in f(y)}$.
-%   #footnote[Sorry about the sudden lambda notation, I needed to see the type of the argument inline for a second...]
+  \newcommand{\fwd}{\mathsf{fwd}}
+  \newcommand{\bwd}{\mathsf{bwd}}
+  We can show this via creating a bijection.
+  First, the forward direction: define $\fwd : \Hom(Y, \calP(X)) \rightarrow \Hom(X, \calP(Y))$ with the function $\lambda (f : Y \rightarrow \calP(X)) . \lambda (x : X) . \{y \in Y \mid x \in f(y)\}$.
+  \marginnote{Sorry about the sudden lambda notation, I needed to see the type of the argument inline for a second...}
   
-%   Then, define the inverse direction $bwd : Hom(X, PP(Y)) -> Hom(Y, PP(X))$ with the function $lambda (g : X -> PP(Y)) . lambda (y : Y) . {x in X | y in g(x)}$.
+  Then, define the inverse direction $\bwd : \Hom(X, \calP(Y)) \rightarrow \Hom(Y, \calP(X))$ with the function $\lambda (g : X \rightarrow \calP(Y)) . \lambda (y : Y) . \{x \in X \mid y \in g(x)\}$.
 
-%   It's easily to show the inverses compose to the identity:
+  It's easily to show the inverses compose to the identity:
 
-%   $ forall f . " " f & = bwd(fwd(f)) \ 
-%   & = lambda (y : Y) . {x in X | y in fwd(f)(x) } \
-%   & = lambda (y : Y) . {x in X | y in (lambda (x : X) . { y in Y | x in f(y)})(x) } \
-%   & = lambda (y : Y) . {x in X | y in { y in Y | x in f(y) } } \
-%   & = lambda (y : Y) . {x in X | x in f(y) } } \
-%   & = lambda (y : Y) . f(y) } } \
-%   & = f \
-%   $
+\begin{align*}
+  \forall f . f & = \bwd(\fwd(f)) \\
+  & = \lambda (y : Y) . \{x \in X \mid y \in \fwd(f)(x) \} \\
+  & = \lambda (y : Y) . \{x \in X \mid y \in (\lambda (x : X) . \{ y \in Y \mid x \in f(y)\})(x) \} \\
+  & = \lambda (y : Y) . \{x \in X \mid y \in \{ y \in Y \mid x \in f(y) \} \} \\
+  & = \lambda (y : Y) . \{x \in X \mid x \in f(y) \} \\
+  & = \lambda (y : Y) . f(y) \\
+  & = f \
+\end{align*}
 
-%   and the other way:
+  and the other way:
 
-%   $ forall g . " " g &= fwd(bwd(g)) \
-%   & = lambda (x : X) . {y in Y | x in bwd(g)(y) } \
-%   & = lambda (x : X) . {y in Y | x in (lambda (y : Y) . {x in X | y in g(x) })(y) } \
-%   & = lambda (x : X) . {y in Y | x in {x in X | y in g(x) } } \
-%   & = lambda (x : X) . {y in Y | y in g(x) } \
-%   & = lambda (x : X) . g(x) \
-%   & = g \
-%   $
+\begin{align*}
+  \forall g . g &= \fwd(\bwd(g)) \\
+  & = \lambda (x : X) . \{y \in Y \mid x \in \bwd(g)(y) \} \\
+  & = \lambda (x : X) . \{y \in Y \mid x \in (\lambda (y : Y) . \{x \in X \mid y \in g(x) \})(y) \} \\
+  & = \lambda (x : X) . \{y \in Y \mid x \in \{x \in X \mid y \in g(x) \} \} \\
+  & = \lambda (x : X) . \{y \in Y \mid y \in g(x) \} \\
+  & = \lambda (x : X) . g(x) \\
+  & = g 
+\end{align*}
+
 \end{proof}
 
-% @contrPowerSetSelfDual is essentially saying that the contravariant powerset functor is self-dual.
-% The strategy now is: if we can somehow lift this self-duality into $DA_LL$, we will be able to get an operation that turns reachable automata into observable automata and vice versa.
+\cref{lem:contrPowerSetSelfDual} is essentially saying that the contravariant powerset functor is self-dual.
+The strategy now is: if we can somehow lift this self-duality into $\DA_\calL$, we will be able to get an operation that turns reachable automata into observable automata and vice versa.
 
 % #let F2 = $overline(2)$
+\newcommand{\Ftwo}{\overline{2}}
 
 % We will devise a functor called $F2$, which is self-dual, that makes this diagram commute:
 
@@ -1110,21 +1119,21 @@ Here we introduce a powerful property of the contravariant powerset functor:
 %   edge("->", PP^*, label-side: #left, bend: #(15deg))
 %   edge(stroke: #0pt, tack.t, label-side: #center)
 %   edge("<-", opp(PP^*), label-side: #right, bend: #(-15deg))
-%   & opp(Set)
+%   & \opp{\Set}
 % $))
 
 % This essentially lifts the self-duality of $PP^*$ into $DA_LL$.
 % The paper @bonchiAlgebracoalgebraDualityBrzozowskis2014 notes that this lifting is true generically
 
 % #definition(title: [Self-dual powerset functor lift])[
-%   Define the functor $F2 : DA_LL -> opp(DA_rev(LL))$ as:
+%   Define the functor $F2 : DA_LL \rightarrow opp(DA_rev(LL))$ as:
 
 %   - action on objects: $F2(Q)$ applies the contravariant powerset functor to all components of the automaton:
 %     - $Q$ is transformed into the power set of states $PP(Q)$
 %     - $delta_Q$ is transformed into the pre-image map as described in @preImageDelta. Note that this recognizes the reverse language.
 %     - $i_Q$ is transformed into the set of all final states
 %     - $F_Q$ is transformed into the set of all initial states
-%   - action on morphisms maps a morphism $Q_1 ->^f Q_2$ to its inverse mapping $PP(Q_2) ->^(overline(PP)(f)) PP(Q_1)$
+%   - action on morphisms maps a morphism $Q_1 \rightarrow^f Q_2$ to its inverse mapping $PP(Q_2) \rightarrow^(overline(PP)(f)) PP(Q_1)$
 % ] <F2Def>
 
 % #proof[ 
@@ -1156,7 +1165,7 @@ Here we introduce a powerful property of the contravariant powerset functor:
 % Dually, for co-reflective subcategories, this means that the inclusion functor has a right adjoint.
 % Let us see why this holds.
 
-% #theorem[$rDA_LL$ is a co-reflective subcategory of $DA_LL$. In other words, supposing $I : rDA_LL arrow.r.hook DA_LL$ is the inclusion functor, there exists a functor $R : DA_LL -> rDA_LL$ such that $ I tack.l R $] <rDALCoreflectiveSubcategory>
+% #theorem[$rDA_LL$ is a co-reflective subcategory of $DA_LL$. In other words, supposing $I : rDA_LL arrow.r.hook DA_LL$ is the inclusion functor, there exists a functor $R : DA_LL \rightarrow rDA_LL$ such that $ I tack.l R $] <rDALCoreflectiveSubcategory>
 
 % #proof[
 %   // #TODO
@@ -1168,13 +1177,13 @@ Here we introduce a powerful property of the contravariant powerset functor:
   
 %   To do this, we must first define $R$, then construct a unit $eta : id_rDA_LL => R compose I$ and a counit $eps : I compose R => id_DA_LL$ that satisfies the triangle inequalities below.
 %   Since we are looking for a functor that takes an automaton with possibly unreachable states into its closest reachable approximation, the most obvious thing to do is simply discarding all unreachable states.
-%   Using the machinery we used above to define reachability, we can say that $R(Q)$ takes the codomain of the morphism $Init -> Q$.
+%   Using the machinery we used above to define reachability, we can say that $R(Q)$ takes the codomain of the morphism $Init \rightarrow Q$.
 %   Thus, $R$ is obviously reachable, and lies in $rDA_LL$.
 
-%   Next, define the unit: for some $Q' : rDA_LL$, we must define $eta_Q' : Q' -> R(I(Q'))$.
+%   Next, define the unit: for some $Q' : rDA_LL$, we must define $eta_Q' : Q' \rightarrow R(I(Q'))$.
 %   We can define this as the _identity_ morphism, since this round trip is a no-op both ways.
 
-%   For the counit, for some $Q : DA_LL$, we must define $eps_Q : I(R(Q)) -> Q$.
+%   For the counit, for some $Q : DA_LL$, we must define $eps_Q : I(R(Q)) \rightarrow Q$.
 %   Since $R(Q)$ contains the subset of $Q$'s states that are reachable, it's actually a subset.
 %   So $eps_Q$ can just be a subset inclusion (notice that unlike above, $I(R(Q))$ may be a different object than just $Q$).
   
@@ -1237,7 +1246,7 @@ Here we introduce a powerful property of the contravariant powerset functor:
 %   Both triangle inequalities check out, so our adjunction is defined.
 
   
-%   // In other words, we are looking for a $Q' : rDA_LL$ such that there are morphisms $f : I(Q') -> Q$ and $g : Q' -> R(Q)$ that obeys the following commutative diagram in $DA_LL$:
+%   // In other words, we are looking for a $Q' : rDA_LL$ such that there are morphisms $f : I(Q') \rightarrow Q$ and $g : Q' \rightarrow R(Q)$ that obeys the following commutative diagram in $DA_LL$:
 
 %   // #align(center, diagram($
 %   //   I(Q') edge("d", "->", I(g))
@@ -1254,17 +1263,17 @@ Here we introduce a powerful property of the contravariant powerset functor:
 %   // Let's sketch out what $R$ should look like.
 %   // Essentially, to go from $DA_LL$ to $rDA_LL$, we want to find the closest approximation of $Q$ inside $rDA_LL$.
 %   // Well, if there are unreachable states inside our automaton, we would like to discard those states.
-%   // To reuse machinery we have already constructed, we can define $R$'s action on objects $Q$ by taking the codomain of the morphism $Init -> Q$.
+%   // To reuse machinery we have already constructed, we can define $R$'s action on objects $Q$ by taking the codomain of the morphism $Init \rightarrow Q$.
 %   // By definition, then, $R(Q)$ is reachable.
 
-%   // Next, we should define the elements of the adjunction, starting with $epsilon.alt_Q : I(R(Q)) -> Q$, the counit.
+%   // Next, we should define the elements of the adjunction, starting with $epsilon.alt_Q : I(R(Q)) \rightarrow Q$, the counit.
 %   // Since $I(R(Q))$ is a subset of the states in $Q$, this morphism is actually a subset inclusion.
 %   // Then, 
 % ]
 
 % Similarly, for $oDA_LL$:
 
-% #theorem[$oDA_LL$ is a reflective subcategory of $DA_LL$. In other words, supposing $I : oDA_LL arrow.r.hook DA_LL$ is the inclusion functor, there exists a functor $Omicron : DA_LL -> oDA_LL$ such that $ O tack.l I $] <oDALReflectiveSubcategory>
+% #theorem[$oDA_LL$ is a reflective subcategory of $DA_LL$. In other words, supposing $I : oDA_LL arrow.r.hook DA_LL$ is the inclusion functor, there exists a functor $Omicron : DA_LL \rightarrow oDA_LL$ such that $ O tack.l I $] <oDALReflectiveSubcategory>
 
 % #exercise[Prove @oDALReflectiveSubcategory. The proof should look mostly like a dualization of the proof of @rDALCoreflectiveSubcategory.]
 
@@ -1361,16 +1370,22 @@ Here we introduce a powerful property of the contravariant powerset functor:
 % edge(<mDAL2>, <mDAL>, "->", stroke: 2pt + red, bend: 5deg, text(fill: red, $opp(F2)$))
 % }))
 
-% #theorem(title: [Brzozowski minimization algorithm])[
-%   The functor:
-%   $ (opp(F2) compose opp(R) compose F2 compose R) : DA_LL -> mDA_LL $
-%   minimizes deterministic automata.
-% ]
+\begin{theorem}[Brzozowski minimization algorithm]
+  The functor:
+  \begin{equation}
+    (\opp{\Ftwo} \circ \opp{R} \circ \Ftwo \circ R) : \DA_\calL \rightarrow mDA_\calL
+  \end{equation}
+  minimizes deterministic automata.
+\end{theorem}
 
-% #proof[
-% Due to the way the functors were constructed, we get the following two properties "for free" (ignoring all the work that went into constructing the functors):
-% - the series of functors preserves the language being recognized (notice the subscript $LL$)
-% - the resulting automaton is minimal (by definition of $mDA_LL$)
+\begin{proof}
+  
+Due to the way the functors were constructed, we get the following two properties "for free" (ignoring all the work that went into constructing the functors):
 
-% Thus, the theorem holds by construction.
-% ]
+\begin{itemize}
+\item the series of functors preserves the language being recognized (notice the subscript $\calL$)
+\item the resulting automaton is minimal (by definition of $mDA_\calL$)
+\end{itemize}
+
+Thus, the theorem holds by construction.
+\end{proof}
